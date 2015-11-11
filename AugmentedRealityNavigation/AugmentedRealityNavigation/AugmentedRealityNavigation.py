@@ -132,6 +132,12 @@ class AugmentedRealityNavigationWidget(ScriptedLoadableModuleWidget):
     self.applyTransformsButton.enabled = False
     parametersFormLayout.addRow(self.applyTransformsButton)
 
+    # Reset Transform Tree Button
+    self.resetTransformsButton = qt.QPushButton("Reset Transforms")
+    self.resetTransformsButton.toolTip = "Reset transform tree."
+    self.resetTransformsButton.enabled = False
+    parametersFormLayout.addRow(self.resetTransformsButton)
+
     # Viewpoint Definition Area
     viewpointCollapsibleButton = ctk.ctkCollapsibleButton()
     viewpointCollapsibleButton.text = "Viewpoint"
@@ -156,15 +162,24 @@ class AugmentedRealityNavigationWidget(ScriptedLoadableModuleWidget):
     self.pointerViewpointButton.enabled = True
     parametersFormLayout.addRow(self.pointerViewpointButton)
 
+     # Stop Viewpoint Button
+    self.stopViewpointButton = qt.QPushButton("STOP VIEWPOINT")
+    self.stopViewpointButton.toolTip = "Stop viewpoint."
+    self.stopViewpointButton.enabled = True
+    parametersFormLayout.addRow(self.stopViewpointButton)
+
      # connections    
     self.tabletToTrackerSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.applicatorToTrackerSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.pointerToTrackerSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.loadModelsButton.connect('clicked(bool)', self.onLoadModelsButtonClicked)
     self.applyTransformsButton.connect('clicked(bool)', self.onApplyTransformsClicked)
+    self.resetTransformsButton.connect('clicked(bool)', self.onResetTransformsClicked)
     self.tabletViewpointButton.connect('clicked(bool)', self.onTabletViewpointButtonClicked)
     self.applicatorViewpointButton.connect('clicked(bool)', self.onApplicatorViewpointButtonClicked)
     self.pointerViewpointButton.connect('clicked(bool)', self.onPointerViewpointButtonClicked)
+    self.stopViewpointButton.connect('clicked(bool)', self.onStopViewpointButtonClicked)
+
         
     # Add vertical spacer
     self.layout.addStretch(1)
@@ -187,8 +202,25 @@ class AugmentedRealityNavigationWidget(ScriptedLoadableModuleWidget):
     self.pointerToTrackerSelector.enabled = False
     self.tabletToTrackerSelector.enabled = False
     self.applicatorToTrackerSelector.enabled = False
+    self.applicatorModelSelector.enabled = False
+    self.tabletModelSelector.enabled = False
+    self.pointerModelSelector.enabled = False
+    self.loadModelsButton.enabled = False
+    self.resetTransformsButton.enabled = True
     logic = AugmentedRealityNavigationLogic()
     logic.buildTransformTree(self.pointerModelSelector.currentNode(), self.tabletModelSelector.currentNode(), self.applicatorModelSelector.currentNode(), self.pointerToTrackerSelector.currentNode(), self.tabletToTrackerSelector.currentNode(), self.applicatorToTrackerSelector.currentNode())
+
+  def onResetTransformsClicked(self):
+    logic = AugmentedRealityNavigationLogic()
+    logic.resetTransformTree(self.pointerModelSelector.currentNode(), self.tabletModelSelector.currentNode(), self.applicatorModelSelector.currentNode(), self.pointerToTrackerSelector.currentNode(), self.tabletToTrackerSelector.currentNode(), self.applicatorToTrackerSelector.currentNode())
+    self.pointerToTrackerSelector.enabled = True
+    self.tabletToTrackerSelector.enabled = True
+    self.applicatorToTrackerSelector.enabled = True
+    self.applicatorModelSelector.enabled = True
+    self.tabletModelSelector.enabled = True
+    self.pointerModelSelector.enabled = True
+    self.loadModelsButton.enabled = True
+    self.resetTransformsButton.enabled = False
 
   def onTabletViewpointButtonClicked(self):
     logging.debug('SetTabletViewpoint')
@@ -203,7 +235,11 @@ class AugmentedRealityNavigationWidget(ScriptedLoadableModuleWidget):
   def onPointerViewpointButtonClicked(self):
     logging.debug('SetPointerViewpoint')
     logic = AugmentedRealityNavigationLogic()
-    logic.SetPointerViewpoint()
+    logic.SetPointerViewpoint(self.pointerModelSelector.currentNode(), self.pointerToTrackerSelector.currentNode())
+
+  def onStopViewpointButtonClicked(self):
+    logic = AugmentedRealityNavigationLogic()
+    logic.StopViewpoint()
 
 ### AugmentedRealityNavigationLogic
 class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
@@ -211,6 +247,9 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
   def __init__(self):
     import Viewpoint # Viewpoint Module must have been added to Slicer 
     self.viewpointLogic = Viewpoint.ViewpointLogic()
+  
+  def __del__(self):
+    self.viewpointLogic.stopViewpoint()
 
   def LoadModels(self):
     moduleDirectoryPath = slicer.modules.augmentedrealitynavigation.path.replace('AugmentedRealityNavigation.py', '')
@@ -219,12 +258,16 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
     slicer.util.loadModel(qt.QDir.toNativeSeparators(moduleDirectoryPath + '../../Data/Models/PointerModel.stl'))
     
   def buildTransformTree(self, pointerModelNode, tabletModelNode, applicatorModelNode, PointerToTrackerTransformNode, TabletToTrackerTransformNode, ApplicatorToTrackerTransformNode):
-     
     # Build transform tree
     pointerModelNode.SetAndObserveTransformNodeID(PointerToTrackerTransformNode.GetID())
     tabletModelNode.SetAndObserveTransformNodeID(TabletToTrackerTransformNode.GetID())
     applicatorModelNode.SetAndObserveTransformNodeID(ApplicatorToTrackerTransformNode.GetID())
-    
+  
+  def resetTransformTree(self, pointerModelNode, tabletModelNode, applicatorModelNode, PointerToTrackerTransformNode, TabletToTrackerTransformNode, ApplicatorToTrackerTransformNode):
+     # Reset transform tree
+    PointerToTrackerTransformNode.SetAndObserveTransformNodeID(pointerModelNode.GetID())
+    TabletToTrackerTransformNode.SetAndObserveTransformNodeID(tabletModelNode.GetID())
+    ApplicatorToTrackerTransformNode.SetAndObserveTransformNodeID(applicatorModelNode.GetID())
 
   def SetTabletViewpoint(self):
     pass
@@ -232,7 +275,69 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
   def SetApplicatorViewpoint(self):
     pass
 
-  def SetPointerViewpoint(self):
-    pass
+  def SetPointerViewpoint(self, pointerModelNode, PointerToTrackerTransformNode):
+    self.viewpointLogic.startViewpoint()
+    self.initViewpoint(pointerModelNode, PointerToTrackerTransformNode)
+
+  def StopViewpoint(self):
+    self.viewpointLogic.stopViewpoint()
+
+  def initViewpoint(self, pointerModelNode, PointerToTrackerTransformNode):
+    if PointerToTrackerTransformNode:
+      # ViewPointToMeasurement
+      viewPointToMeasurement = slicer.util.getNode('ViewPointToMeasurement')
+      if not viewPointToMeasurement:
+        viewPointToMeasurement=slicer.vtkMRMLLinearTransformNode()
+        viewPointToMeasurement.SetName("ViewPointToMeasurement")
+        m = vtk.vtkMatrix4x4()
+        # Large lens
+        m.SetElement( 0, 0, -1 ) # Row 1
+        m.SetElement( 0, 1, 0 )
+        m.SetElement( 0, 2, 0 )
+        m.SetElement( 0, 3, 0 )      
+        m.SetElement( 1, 0, 0 )  # Row 2
+        m.SetElement( 1, 1, -1 )
+        m.SetElement( 1, 2, 0 )
+        m.SetElement( 1, 3, 0 )       
+        m.SetElement( 2, 0, 0 )  # Row 3
+        m.SetElement( 2, 1, 0 )
+        m.SetElement( 2, 2, 1 )
+        m.SetElement( 2, 3, -60 )
+        # Small lens
+        # m.SetElement( 0, 0, -1 ) # Row 1
+        # m.SetElement( 0, 1, 0 )
+        # m.SetElement( 0, 2, 0 )
+        # m.SetElement( 0, 3, 53.00 )      
+        # m.SetElement( 1, 0, 0 )  # Row 2
+        # m.SetElement( 1, 1, -1 )
+        # m.SetElement( 1, 2, 0 )
+        # m.SetElement( 1, 3, 88.00 )       
+        # m.SetElement( 2, 0, 0 )  # Row 3
+        # m.SetElement( 2, 1, 0 )
+        # m.SetElement( 2, 2, 1 )
+        # m.SetElement( 2, 3, 54 )
+        viewPointToMeasurement.SetMatrixTransformToParent(m)
+        slicer.mrmlScene.AddNode(viewPointToMeasurement)
+      viewPointToMeasurement.SetAndObserveTransformNodeID(PointerToTrackerTransformNode.GetID())  
+    
+      pointerModelNode.GetDisplayNode().SetOpacity(0.7)
+
+      # Camera
+      camera = slicer.util.getNode('Camera')
+      if not camera:
+        camera=slicer.vtkMRMLCameraNode()
+        camera.SetName("Camera")
+        slicer.mrmlScene.AddNode(camera)
+      threeDView = slicer.util.getNode("View1")
+      camera.SetActiveTag(threeDView.GetID())    
+
+      # Viewpoint
+      self.viewpointLogic.setCameraNode(camera)
+      self.viewpointLogic.setTransformNode(viewPointToMeasurement)
+      self.viewpointLogic.setModelPOVOnNode(pointerModelNode)
+      self.viewpointLogic.SetCameraXPosMm(53)
+      self.viewpointLogic.SetCameraYPosMm(72)
+      self.viewpointLogic.SetCameraZPosMm(119)
+      self.viewpointLogic.startViewpoint()
 
 
