@@ -335,7 +335,7 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
       # Viewpoint
       self.viewpointLogic.setCameraNode(camera)
       self.viewpointLogic.setTransformNode(viewPointToMeasurement)
-      self.viewpointLogic.setModelPOVOnNode(pointerModelNode)
+      # self.viewpointLogic.setModelPOVOnNode(pointerModelNode)
       self.viewpointLogic.SetCameraXPosMm(53)
       self.viewpointLogic.SetCameraYPosMm(72)
       self.viewpointLogic.SetCameraZPosMm(119)
