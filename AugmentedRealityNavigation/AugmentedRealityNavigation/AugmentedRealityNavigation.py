@@ -276,7 +276,7 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
     pass
 
   def SetPointerViewpoint(self, pointerModelNode, PointerToTrackerTransformNode):
-    self.viewpointLogic.startViewpoint()
+    # self.viewpointLogic.startViewpoint()
     self.initViewpoint(pointerModelNode, PointerToTrackerTransformNode)
 
   def StopViewpoint(self):
@@ -291,7 +291,7 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
         viewPointToMeasurement.SetName("ViewPointToMeasurement")
         m = vtk.vtkMatrix4x4()
         # Large lens
-        m.SetElement( 0, 0, -1 ) # Row 1
+        m.SetElement( 0, 0, 1 ) # Row 1
         m.SetElement( 0, 1, 0 )
         m.SetElement( 0, 2, 0 )
         m.SetElement( 0, 3, 0 )      
@@ -301,8 +301,9 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
         m.SetElement( 1, 3, 0 )       
         m.SetElement( 2, 0, 0 )  # Row 3
         m.SetElement( 2, 1, 0 )
-        m.SetElement( 2, 2, 1 )
-        m.SetElement( 2, 3, -60 )
+        m.SetElement( 2, 2, -1 )
+        m.SetElement( 2, 3, 0 )
+        
         # Small lens
         # m.SetElement( 0, 0, -1 ) # Row 1
         # m.SetElement( 0, 1, 0 )
@@ -320,8 +321,8 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
         slicer.mrmlScene.AddNode(viewPointToMeasurement)
       viewPointToMeasurement.SetAndObserveTransformNodeID(PointerToTrackerTransformNode.GetID())  
     
-      pointerModelNode.GetDisplayNode().SetOpacity(0.7)
-
+      pointerModelNode.GetDisplayNode().SetOpacity(1)
+      
       # Camera
       camera = slicer.util.getNode('Camera')
       if not camera:
@@ -339,5 +340,8 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
       self.viewpointLogic.SetCameraYPosMm(72)
       self.viewpointLogic.SetCameraZPosMm(119)
       self.viewpointLogic.startViewpoint()
+
+      pointerModelNode.GetDisplayNode().SetVisibility (True);
+
 
 
