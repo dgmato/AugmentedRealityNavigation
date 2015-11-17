@@ -315,7 +315,7 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
         slicer.mrmlScene.AddNode(viewPointToMeasurement)
       viewPointToMeasurement.SetAndObserveTransformNodeID(PointerToTrackerTransformNode.GetID())  
       pointerModelNode.GetDisplayNode().SetOpacity(1)
-      
+
       # Camera
       camera = slicer.util.getNode('Camera')
       if not camera:
@@ -323,14 +323,15 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
         camera.SetName("Camera")
         slicer.mrmlScene.AddNode(camera)
       threeDView = slicer.util.getNode("View1")
-      camera.SetActiveTag(threeDView.GetID())    
+      camera.SetActiveTag(threeDView.GetID())  
+      camera.SetAndObserveTransformNodeID(PointerToTrackerTransformNode.GetID())    
 
       # Viewpoint
       self.viewpointLogic.setCameraNode(camera)
       self.viewpointLogic.setTransformNode(viewPointToMeasurement)
       # self.viewpointLogic.setModelPOVOnNode(pointerModelNode)
       # self.viewpointLogic.setModelPOVOffNode(self.modelOnlyViewpointOffSelector.currentNode())
-      self.viewpointLogic.setTargetModelNode(pointerModelNode)
+      # self.viewpointLogic.setTargetModelNode(pointerModelNode)
       self.viewpointLogic.startViewpoint()
       # self.initViewpoint(pointerModelNode, PointerToTrackerTransformNode)
 
