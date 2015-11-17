@@ -279,9 +279,9 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
   
   def resetTransformTree(self, pointerModelNode, tabletModelNode, applicatorModelNode, PointerToTrackerTransformNode, TabletToTrackerTransformNode, ApplicatorToTrackerTransformNode):
      # Reset transform tree
-    PointerToTrackerTransformNode.SetAndObserveTransformNodeID(pointerModelNode.GetID())
-    TabletToTrackerTransformNode.SetAndObserveTransformNodeID(tabletModelNode.GetID())
-    ApplicatorToTrackerTransformNode.SetAndObserveTransformNodeID(applicatorModelNode.GetID())
+    pointerModelNode.SetAndObserveTransformNodeID(None)
+    tabletModelNode.SetAndObserveTransformNodeID(None)
+    applicatorModelNode.SetAndObserveTransformNodeID(None)
 
   def SetTabletViewpoint(self):
     pass
