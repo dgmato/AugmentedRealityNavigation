@@ -338,7 +338,7 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
       pointerModelNode.GetDisplayNode().SetVisibility (True);
 
   def StopViewpoint(self):
-    camera.SetAndObserveTransformNodeID(None)    
+    # camera.SetAndObserveTransformNodeID(None)    
     self.viewpointLogic.stopViewpoint()
 
   def initViewpoint(self, pointerModelNode, PointerToTrackerTransformNode):
