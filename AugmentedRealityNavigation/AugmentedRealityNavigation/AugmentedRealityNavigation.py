@@ -303,12 +303,12 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
         m.SetElement( 0, 2, 0 )
         m.SetElement( 0, 3, 0 )      
         m.SetElement( 1, 0, 0 )  # Row 2
-        m.SetElement( 1, 1, -1 )
+        m.SetElement( 1, 1, 1 )
         m.SetElement( 1, 2, 0 )
         m.SetElement( 1, 3, 0 )       
         m.SetElement( 2, 0, 0 )  # Row 3
         m.SetElement( 2, 1, 0 )
-        m.SetElement( 2, 2, -1 )
+        m.SetElement( 2, 2, 1 )
         m.SetElement( 2, 3, 0 )
         
         viewPointToMeasurement.SetMatrixTransformToParent(m)
@@ -330,7 +330,7 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
       self.viewpointLogic.setTransformNode(viewPointToMeasurement)
       # self.viewpointLogic.setModelPOVOnNode(pointerModelNode)
       # self.viewpointLogic.setModelPOVOffNode(self.modelOnlyViewpointOffSelector.currentNode())
-      # self.viewpointLogic.setTargetModelNode(self.targetModelSelector.currentNode())
+      self.viewpointLogic.setTargetModelNode(pointerModelNode)
       self.viewpointLogic.startViewpoint()
       # self.initViewpoint(pointerModelNode, PointerToTrackerTransformNode)
 
