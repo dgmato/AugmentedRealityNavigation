@@ -261,7 +261,35 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
   def __init__(self):
     import Viewpoint # Viewpoint Module must have been added to Slicer 
     self.viewpointLogic = Viewpoint.ViewpointLogic()
-  
+
+    # Camera transformations
+    self.pointerCameraToPointer = slicer.util.getNode('PointerCameraToPointer')
+    if not self.pointerCameraToPointer:
+      self.pointerCameraToPointer=slicer.vtkMRMLLinearTransformNode()
+      self.pointerCameraToPointer.SetName("PointerCameraToPointer")
+      m = vtk.vtkMatrix4x4()
+      m.SetElement( 0, 0, 1 ) # Row 1
+      m.SetElement( 0, 1, 0 )
+      m.SetElement( 0, 2, 0 )
+      m.SetElement( 0, 3, 0 )      
+      m.SetElement( 1, 0, 0 )  # Row 2
+      m.SetElement( 1, 1, 1 )
+      m.SetElement( 1, 2, 0 )
+      m.SetElement( 1, 3, 0 )       
+      m.SetElement( 2, 0, 0 )  # Row 3
+      m.SetElement( 2, 1, 0 )
+      m.SetElement( 2, 2, 1 )
+      m.SetElement( 2, 3, 0 )
+      self.pointerCameraToPointer.SetMatrixTransformToParent(m)
+      slicer.mrmlScene.AddNode(self.pointerCameraToPointer)
+
+    # Camera
+    self.camera = slicer.util.getNode('Camera')
+    if not self.camera:
+        self.camera=slicer.vtkMRMLCameraNode()
+        self.camera.SetName("Camera")
+        slicer.mrmlScene.AddNode(self.camera)
+    
   def __del__(self):
     self.viewpointLogic.stopViewpoint()
 
@@ -291,44 +319,17 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
 
   def SetPointerViewpoint(self, pointerModelNode, PointerToTrackerTransformNode):
     if PointerToTrackerTransformNode:
-      # ViewPointToMeasurement
-      viewPointToMeasurement = slicer.util.getNode('ViewPointToMeasurement')
-      if not viewPointToMeasurement:
-        viewPointToMeasurement=slicer.vtkMRMLLinearTransformNode()
-        viewPointToMeasurement.SetName("ViewPointToMeasurement")
-        m = vtk.vtkMatrix4x4()
-        
-        m.SetElement( 0, 0, 1 ) # Row 1
-        m.SetElement( 0, 1, 0 )
-        m.SetElement( 0, 2, 0 )
-        m.SetElement( 0, 3, 0 )      
-        m.SetElement( 1, 0, 0 )  # Row 2
-        m.SetElement( 1, 1, 1 )
-        m.SetElement( 1, 2, 0 )
-        m.SetElement( 1, 3, 0 )       
-        m.SetElement( 2, 0, 0 )  # Row 3
-        m.SetElement( 2, 1, 0 )
-        m.SetElement( 2, 2, 1 )
-        m.SetElement( 2, 3, 0 )
-        
-        viewPointToMeasurement.SetMatrixTransformToParent(m)
-        slicer.mrmlScene.AddNode(viewPointToMeasurement)
-      viewPointToMeasurement.SetAndObserveTransformNodeID(PointerToTrackerTransformNode.GetID())  
+      
+      self.pointerCameraToPointer.SetAndObserveTransformNodeID(PointerToTrackerTransformNode.GetID())  
       pointerModelNode.GetDisplayNode().SetOpacity(1)
 
-      # Camera
-      camera = slicer.util.getNode('Camera')
-      if not camera:
-        camera=slicer.vtkMRMLCameraNode()
-        camera.SetName("Camera")
-        slicer.mrmlScene.AddNode(camera)
       threeDView = slicer.util.getNode("View1")
-      camera.SetActiveTag(threeDView.GetID())  
-      camera.SetAndObserveTransformNodeID(PointerToTrackerTransformNode.GetID())    
+      self.camera.SetActiveTag(threeDView.GetID())  
+      self.camera.SetAndObserveTransformNodeID(self.pointerCameraToPointer.GetID())    
 
       # Viewpoint
-      self.viewpointLogic.setCameraNode(camera)
-      self.viewpointLogic.setTransformNode(viewPointToMeasurement)
+      self.viewpointLogic.setCameraNode(self.camera)
+      self.viewpointLogic.setTransformNode(self.pointerCameraToPointer)
       # self.viewpointLogic.setModelPOVOnNode(pointerModelNode)
       # self.viewpointLogic.setModelPOVOffNode(self.modelOnlyViewpointOffSelector.currentNode())
       # self.viewpointLogic.setTargetModelNode(pointerModelNode)
@@ -338,7 +339,7 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
       pointerModelNode.GetDisplayNode().SetVisibility (True);
 
   def StopViewpoint(self):
-    # camera.SetAndObserveTransformNodeID(None)    
+    self.camera.SetAndObserveTransformNodeID(None)    
     self.viewpointLogic.stopViewpoint()
 
   def initViewpoint(self, pointerModelNode, PointerToTrackerTransformNode):
