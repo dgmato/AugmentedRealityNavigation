@@ -241,6 +241,7 @@ class AugmentedRealityNavigationWidget(ScriptedLoadableModuleWidget):
     logic = AugmentedRealityNavigationLogic()
     
     if self.enablePointerViewpointButtonState == 0:
+          logic.StartViewpoint()
           logic.SetPointerViewpoint(self.pointerModelSelector.currentNode(), self.pointerToTrackerSelector.currentNode())
           self.enablePointerViewpointButtonState = 1
           self.pointerViewpointButton.setText(self.enablePointerViewpointButtonTextState1)
@@ -268,6 +269,7 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
       self.pointerCameraToPointer=slicer.vtkMRMLLinearTransformNode()
       self.pointerCameraToPointer.SetName("PointerCameraToPointer")
       m = vtk.vtkMatrix4x4()
+       
       m.SetElement( 0, 0, 1 ) # Row 1
       m.SetElement( 0, 1, 0 )
       m.SetElement( 0, 2, 0 )
@@ -280,6 +282,7 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
       m.SetElement( 2, 1, 0 )
       m.SetElement( 2, 2, 1 )
       m.SetElement( 2, 3, 0 )
+
       self.pointerCameraToPointer.SetMatrixTransformToParent(m)
       slicer.mrmlScene.AddNode(self.pointerCameraToPointer)
 
@@ -325,18 +328,23 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
 
       threeDView = slicer.util.getNode("View1")
       self.camera.SetActiveTag(threeDView.GetID())  
-      self.camera.SetAndObserveTransformNodeID(self.pointerCameraToPointer.GetID())    
-
+      
       # Viewpoint
       self.viewpointLogic.setCameraNode(self.camera)
       self.viewpointLogic.setTransformNode(self.pointerCameraToPointer)
       # self.viewpointLogic.setModelPOVOnNode(pointerModelNode)
       # self.viewpointLogic.setModelPOVOffNode(self.modelOnlyViewpointOffSelector.currentNode())
       # self.viewpointLogic.setTargetModelNode(pointerModelNode)
+      # self.viewpointLogic.SetCameraXPosMm(53)
+      # self.viewpointLogic.SetCameraYPosMm(72)
+      # self.viewpointLogic.SetCameraZPosMm(119)
       self.viewpointLogic.startViewpoint()
       # self.initViewpoint(pointerModelNode, PointerToTrackerTransformNode)
 
       pointerModelNode.GetDisplayNode().SetVisibility (True);
+
+  def StartViewpoint(self):
+    self.viewpointLogic.startViewpoint()
 
   def StopViewpoint(self):
     self.camera.SetAndObserveTransformNodeID(None)    
