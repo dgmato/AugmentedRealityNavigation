@@ -284,7 +284,7 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
       m.SetElement( 0, 0, 1 ) # Row 1
       m.SetElement( 0, 1, 0 )
       m.SetElement( 0, 2, 0 )
-      m.SetElement( 0, 3, 0 )      
+      m.SetElement( 0, 3, 19 )      
       m.SetElement( 1, 0, 0 )  # Row 2
       m.SetElement( 1, 1, 1 )
       m.SetElement( 1, 2, 0 )
@@ -292,7 +292,7 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
       m.SetElement( 2, 0, 0 )  # Row 3
       m.SetElement( 2, 1, 0 )
       m.SetElement( 2, 2, 1 )
-      m.SetElement( 2, 3, 0 )
+      m.SetElement( 2, 3, 330 )
 
       self.pointerCameraToPointer.SetMatrixTransformToParent(m)
       slicer.mrmlScene.AddNode(self.pointerCameraToPointer)
