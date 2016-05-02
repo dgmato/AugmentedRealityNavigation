@@ -147,20 +147,28 @@ class AugmentedRealityNavigationWidget(ScriptedLoadableModuleWidget):
     parametersFormLayout = qt.QFormLayout(viewpointCollapsibleButton)
 
     # Tablet Viewpoint Button
-    self.tabletViewpointButton = qt.QPushButton("Tablet View")
-    self.tabletViewpointButton.toolTip = "Apply tablet viewpoint."
+    self.tabletViewpointButton = qt.QPushButton()
+    self.tabletViewpointButton.toolTip = "Apply Tablet viewpoint."
     self.tabletViewpointButton.enabled = True
+    self.enableTabletViewpointButtonState = 0
+    self.enableTabletViewpointButtonTextState0 = "Enable Tablet Viewpoint Mode"
+    self.enableTabletViewpointButtonTextState1 = "Disable Tablet Viewpoint Mode"
+    self.tabletViewpointButton.setText(self.enableTabletViewpointButtonTextState0)
     parametersFormLayout.addRow(self.tabletViewpointButton)
 
     # Applicator Viewpoint Button
-    self.applicatorViewpointButton = qt.QPushButton("Applicator View")
-    self.applicatorViewpointButton.toolTip = "Apply applicator viewpoint."
+    self.applicatorViewpointButton = qt.QPushButton()
+    self.applicatorViewpointButton.toolTip = "Apply Applicator viewpoint."
     self.applicatorViewpointButton.enabled = True
+    self.enableApplicatorViewpointButtonState = 0
+    self.enableApplicatorViewpointButtonTextState0 = "Enable Applicator Viewpoint Mode"
+    self.enableApplicatorViewpointButtonTextState1 = "Disable Applicator Viewpoint Mode"
+    self.applicatorViewpointButton.setText(self.enableApplicatorViewpointButtonTextState0)
     parametersFormLayout.addRow(self.applicatorViewpointButton)
 
-     # Pointer Viewpoint Button
+    # Pointer Viewpoint Button
     self.pointerViewpointButton = qt.QPushButton()
-    self.pointerViewpointButton.toolTip = "Apply pointer viewpoint."
+    self.pointerViewpointButton.toolTip = "Apply Pointer viewpoint."
     self.pointerViewpointButton.enabled = True
     self.enablePointerViewpointButtonState = 0
     self.enablePointerViewpointButtonTextState0 = "Enable Pointer Viewpoint Mode"
@@ -226,11 +234,29 @@ class AugmentedRealityNavigationWidget(ScriptedLoadableModuleWidget):
 
   def onTabletViewpointButtonClicked(self):
     logging.debug('SetTabletViewpoint')
-    self.AugmentedRealityNavigationLogic.SetTabletViewpoint()
+    
+    if self.enableTabletViewpointButtonState == 0:
+          self.AugmentedRealityNavigationLogic.SetTabletViewpoint(self.tabletModelSelector.currentNode(), self.tabletToTrackerSelector.currentNode())
+          self.AugmentedRealityNavigationLogic.StartViewpoint()
+          self.enableTabletViewpointButtonState = 1
+          self.tabletViewpointButton.setText(self.enableTabletViewpointButtonTextState1)
+    else: 
+          self.AugmentedRealityNavigationLogic.StopViewpoint()
+          self.enableTabletViewpointButtonState = 0
+          self.tabletViewpointButton.setText(self.enableTabletViewpointButtonTextState0)
      
   def onApplicatorViewpointButtonClicked(self):
     logging.debug('SetApplicatorViewpoint')
-    self.AugmentedRealityNavigationLogic.SetApplicatorViewpoint()
+    
+    if self.enableApplicatorViewpointButtonState == 0:
+          self.AugmentedRealityNavigationLogic.SetApplicatorViewpoint(self.applicatorModelSelector.currentNode(), self.applicatorToTrackerSelector.currentNode())
+          self.AugmentedRealityNavigationLogic.StartViewpoint()
+          self.enableApplicatorViewpointButtonState = 1
+          self.applicatorViewpointButton.setText(self.enableApplicatorViewpointButtonTextState1)
+    else: 
+          self.AugmentedRealityNavigationLogic.StopViewpoint()
+          self.enableApplicatorViewpointButtonState = 0
+          self.applicatorViewpointButton.setText(self.enableApplicatorViewpointButtonTextState0)
     
   def onPointerViewpointButtonClicked(self):
     logging.debug('SetPointerViewpoint')
@@ -261,7 +287,6 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
       self.pointerCameraToPointer=slicer.vtkMRMLLinearTransformNode()
       self.pointerCameraToPointer.SetName("PointerCameraToPointer")
       m = vtk.vtkMatrix4x4()
-       
       m.SetElement( 0, 0, 1 ) # Row 1
       m.SetElement( 0, 1, 0 )
       m.SetElement( 0, 2, 0 )
@@ -274,17 +299,50 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
       m.SetElement( 2, 1, 0 )
       m.SetElement( 2, 2, 1 )
       m.SetElement( 2, 3, 330 )
-
       self.pointerCameraToPointer.SetMatrixTransformToParent(m)
       slicer.mrmlScene.AddNode(self.pointerCameraToPointer)
 
-    # Camera
-    # self.camera = slicer.util.getNode('Camera')
-    # if not self.camera:
-    #     self.camera=slicer.vtkMRMLCameraNode()
-    #     self.camera.SetName("Camera")
-    #     slicer.mrmlScene.AddNode(self.camera)
-    
+    self.tabletCameraToTablet = slicer.util.getNode('TabletCameraToTablet')
+    if not self.tabletCameraToTablet:
+      self.tabletCameraToTablet=slicer.vtkMRMLLinearTransformNode()
+      self.tabletCameraToTablet.SetName("TabletCameraToTablet")
+      m = vtk.vtkMatrix4x4()
+      m.SetElement( 0, 0, 1 ) # Row 1
+      m.SetElement( 0, 1, 0 )
+      m.SetElement( 0, 2, 0 )
+      m.SetElement( 0, 3, 19 )      
+      m.SetElement( 1, 0, 0 )  # Row 2
+      m.SetElement( 1, 1, 1 )
+      m.SetElement( 1, 2, 0 )
+      m.SetElement( 1, 3, 0 )       
+      m.SetElement( 2, 0, 0 )  # Row 3
+      m.SetElement( 2, 1, 0 )
+      m.SetElement( 2, 2, 1 )
+      m.SetElement( 2, 3, 330 )
+      self.tabletCameraToTablet.SetMatrixTransformToParent(m)
+      slicer.mrmlScene.AddNode(self.tabletCameraToTablet)
+
+    self.applicatorCameraToApplicator = slicer.util.getNode('ApplicatorCameraToApplicator')
+    if not self.applicatorCameraToApplicator:
+      self.applicatorCameraToApplicator=slicer.vtkMRMLLinearTransformNode()
+      self.applicatorCameraToApplicator.SetName("ApplicatorCameraToApplicator")
+      m = vtk.vtkMatrix4x4()
+      m.SetElement( 0, 0, 1 ) # Row 1
+      m.SetElement( 0, 1, 0 )
+      m.SetElement( 0, 2, 0 )
+      m.SetElement( 0, 3, 19 )      
+      m.SetElement( 1, 0, 0 )  # Row 2
+      m.SetElement( 1, 1, 1 )
+      m.SetElement( 1, 2, 0 )
+      m.SetElement( 1, 3, 0 )       
+      m.SetElement( 2, 0, 0 )  # Row 3
+      m.SetElement( 2, 1, 0 )
+      m.SetElement( 2, 2, 1 )
+      m.SetElement( 2, 3, 330 )
+      self.applicatorCameraToApplicator.SetMatrixTransformToParent(m)
+      slicer.mrmlScene.AddNode(self.applicatorCameraToApplicator)
+
+     
   def __del__(self):
     self.viewpointLogic.stopViewpoint()
 
@@ -306,20 +364,35 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
     tabletModelNode.SetAndObserveTransformNodeID(None)
     applicatorModelNode.SetAndObserveTransformNodeID(None)
 
-  def SetTabletViewpoint(self):
-    pass
+  def SetTabletViewpoint(self, tabletModelNode, TabletToTrackerTransformNode):
+    if TabletToTrackerTransformNode:
+      self.tabletCameraToTablet.SetAndObserveTransformNodeID(TabletToTrackerTransformNode.GetID())  
+      tabletModelNode.GetDisplayNode().SetOpacity(1)
+      SceneCameraNode=slicer.util.getNode('Default Scene Camera')  
+      
+      # Viewpoint
+      self.viewpointLogic.setCameraNode(SceneCameraNode)
+      self.viewpointLogic.setTransformNode(self.tabletCameraToTablet)
+      self.viewpointLogic.startViewpoint()
 
-  def SetApplicatorViewpoint(self):
-    pass
+  def SetApplicatorViewpoint(self, applicatorModelNode, ApplicatorToTrackerTransformNode):
+    if ApplicatorToTrackerTransformNode:
+      self.pointerCameraToPointer.SetAndObserveTransformNodeID(ApplicatorToTrackerTransformNode.GetID())  
+      applicatorModelNode.GetDisplayNode().SetOpacity(1)
+      SceneCameraNode=slicer.util.getNode('Default Scene Camera')  
+      
+      # Viewpoint
+      self.viewpointLogic.setCameraNode(SceneCameraNode)
+      self.viewpointLogic.setTransformNode(self.applicatorCameraToApplicator)
+      self.viewpointLogic.startViewpoint()
 
   def SetPointerViewpoint(self, pointerModelNode, PointerToTrackerTransformNode):
     if PointerToTrackerTransformNode:
       self.pointerCameraToPointer.SetAndObserveTransformNodeID(PointerToTrackerTransformNode.GetID())  
       pointerModelNode.GetDisplayNode().SetOpacity(1)
-
       SceneCameraNode=slicer.util.getNode('Default Scene Camera')  
       
-       # Viewpoint
+      # Viewpoint
       self.viewpointLogic.setCameraNode(SceneCameraNode)
       self.viewpointLogic.setTransformNode(self.pointerCameraToPointer)
       self.viewpointLogic.startViewpoint()
@@ -329,6 +402,8 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
 
   def StopViewpoint(self):
     self.viewpointLogic.stopViewpoint()
+
+
 
  
 
