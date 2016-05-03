@@ -32,56 +32,31 @@ class AugmentedRealityNavigationWidget(ScriptedLoadableModuleWidget):
 
     self.AugmentedRealityNavigationLogic = AugmentedRealityNavigationLogic()
 
-    # Loading models
-    modelsCollapsibleButton = ctk.ctkCollapsibleButton()
-    modelsCollapsibleButton.text = "Models"
-    self.layout.addWidget(modelsCollapsibleButton)
-    parametersFormLayout = qt.QFormLayout(modelsCollapsibleButton)
+    myModuleDataPath = slicer.modules.augmentedrealitynavigation.path.replace("AugmentedRealityNavigation.py","") + 'Resources/Data/Models/'
+        
+    # Load Patient Model
+    self.patientModel = slicer.util.getNode('PatientModel')
+    if not self.patientModel:
+        slicer.util.loadModel(myModuleDataPath + 'PatientModel.stl')
+        self.patientModel = slicer.util.getNode(pattern="PatientModel")
+        self.patientModelDisplay=self.patientModel.GetModelDisplayNode()
+        self.patientModelDisplay.SetColor([1,0.7,0.53])
 
-    # Load Models Button
-    self.loadModelsButton = qt.QPushButton("Load models")
-    self.loadModelsButton.toolTip = "Load saved models: Pointer, Applicator, and Tablet."
-    self.loadModelsButton.enabled = True
-    parametersFormLayout.addRow(self.loadModelsButton)
-   
-    # Tablet model selector    
-    self.tabletModelSelector = slicer.qMRMLNodeComboBox()
-    self.tabletModelSelector.nodeTypes = ( ("vtkMRMLModelNode"), "" )
-    self.tabletModelSelector.selectNodeUponCreation = True
-    self.tabletModelSelector.addEnabled = False
-    self.tabletModelSelector.removeEnabled = False
-    self.tabletModelSelector.noneEnabled = False
-    self.tabletModelSelector.showHidden = False
-    self.tabletModelSelector.showChildNodeTypes = False
-    self.tabletModelSelector.setMRMLScene( slicer.mrmlScene )
-    self.tabletModelSelector.setToolTip( "Pick the tablet model." )
-    parametersFormLayout.addRow("Tablet model: ", self.tabletModelSelector)
-      
-    # Applicator model selector
-    self.applicatorModelSelector = slicer.qMRMLNodeComboBox()
-    self.applicatorModelSelector.nodeTypes = ( ("vtkMRMLModelNode"), "" )
-    self.applicatorModelSelector.selectNodeUponCreation = True
-    self.applicatorModelSelector.addEnabled = False
-    self.applicatorModelSelector.removeEnabled = False
-    self.applicatorModelSelector.noneEnabled = False
-    self.applicatorModelSelector.showHidden = False
-    self.applicatorModelSelector.showChildNodeTypes = False
-    self.applicatorModelSelector.setMRMLScene( slicer.mrmlScene )
-    self.applicatorModelSelector.setToolTip( "Pick the applicator model." )
-    parametersFormLayout.addRow("Applicator model: ", self.applicatorModelSelector)
-    
-    # Pointer model selector    
-    self.pointerModelSelector = slicer.qMRMLNodeComboBox()
-    self.pointerModelSelector.nodeTypes = ( ("vtkMRMLModelNode"), "" )
-    self.pointerModelSelector.selectNodeUponCreation = True
-    self.pointerModelSelector.addEnabled = False
-    self.pointerModelSelector.removeEnabled = False
-    self.pointerModelSelector.noneEnabled = False
-    self.pointerModelSelector.showHidden = False
-    self.pointerModelSelector.showChildNodeTypes = False
-    self.pointerModelSelector.setMRMLScene( slicer.mrmlScene )
-    self.pointerModelSelector.setToolTip( "Pick the pointer model." )
-    parametersFormLayout.addRow("Pointer model: ", self.pointerModelSelector)
+    # Load Tablet Model
+    self.tabletModel = slicer.util.getNode('TabletModel')
+    if not self.tabletModel:
+        slicer.util.loadModel(myModuleDataPath + 'TabletModel.stl')
+        self.tabletModel = slicer.util.getNode(pattern="TabletModel")
+        self.tabletModelDisplay=self.tabletModel.GetModelDisplayNode()
+        self.tabletModelDisplay.SetColor([1,0.7,0.53])
+
+    # Load Pointer Model
+    self.pointerModel = slicer.util.getNode('PointerModel')
+    if not self.pointerModel:
+        slicer.util.loadModel(myModuleDataPath + 'PointerModel.stl')
+        self.pointerModel = slicer.util.getNode(pattern="PointerModel")
+        self.pointerModelDisplay=self.pointerModel.GetModelDisplayNode()
+        self.pointerModelDisplay.SetColor([1,0.7,0.53])
           
     # Transform Definition Area
     transformsCollapsibleButton = ctk.ctkCollapsibleButton()
@@ -89,56 +64,52 @@ class AugmentedRealityNavigationWidget(ScriptedLoadableModuleWidget):
     self.layout.addWidget(transformsCollapsibleButton)   
     parametersFormLayout = qt.QFormLayout(transformsCollapsibleButton)
     
-    # TabletToTracker transform selector
-    self.tabletToTrackerSelector = slicer.qMRMLNodeComboBox()
-    self.tabletToTrackerSelector.nodeTypes = ( ("vtkMRMLLinearTransformNode"), "" )
-    self.tabletToTrackerSelector.selectNodeUponCreation = True
-    self.tabletToTrackerSelector.addEnabled = False
-    self.tabletToTrackerSelector.removeEnabled = False
-    self.tabletToTrackerSelector.noneEnabled = False
-    self.tabletToTrackerSelector.showHidden = False
-    self.tabletToTrackerSelector.showChildNodeTypes = False
-    self.tabletToTrackerSelector.setMRMLScene( slicer.mrmlScene )
-    self.tabletToTrackerSelector.setToolTip( "Pick the TabletToTracker transform." )
-    parametersFormLayout.addRow("TabletToTracker transform: ", self.tabletToTrackerSelector)
+    # TabletToTracker transform 
+    self.tabletToTrackerTransform = slicer.util.getNode('Tracker')
+    if not self.tabletToTrackerTransform:
+      print('ERROR: tabletToTracker transform node was not found')
 
-    # ApplicatorToTracker transform selector
-    self.applicatorToTrackerSelector = slicer.qMRMLNodeComboBox()
-    self.applicatorToTrackerSelector.nodeTypes = ( ("vtkMRMLLinearTransformNode"), "" )
-    self.applicatorToTrackerSelector.selectNodeUponCreation = True
-    self.applicatorToTrackerSelector.addEnabled = False
-    self.applicatorToTrackerSelector.removeEnabled = False
-    self.applicatorToTrackerSelector.noneEnabled = False
-    self.applicatorToTrackerSelector.showHidden = False
-    self.applicatorToTrackerSelector.showChildNodeTypes = False
-    self.applicatorToTrackerSelector.setMRMLScene( slicer.mrmlScene )
-    self.applicatorToTrackerSelector.setToolTip( "Pick the ApplicatorToTracker transform." )
-    parametersFormLayout.addRow("ApplicatorToTracker transform: ", self.applicatorToTrackerSelector)
+    # referenceToTracker transform 
+    self.referenceToTrackerTransform = slicer.util.getNode('referenceToTracker')
+    if not self.referenceToTrackerTransform:
+      print('ERROR: referenceToTracker transform node was not found')
 
-    # PointerToTracker transform selector
-    self.pointerToTrackerSelector = slicer.qMRMLNodeComboBox()
-    self.pointerToTrackerSelector.nodeTypes = ( ("vtkMRMLLinearTransformNode"), "" )
-    self.pointerToTrackerSelector.selectNodeUponCreation = True
-    self.pointerToTrackerSelector.addEnabled = False
-    self.pointerToTrackerSelector.removeEnabled = False
-    self.pointerToTrackerSelector.noneEnabled = False
-    self.pointerToTrackerSelector.showHidden = False
-    self.pointerToTrackerSelector.showChildNodeTypes = False
-    self.pointerToTrackerSelector.setMRMLScene( slicer.mrmlScene )
-    self.pointerToTrackerSelector.setToolTip( "Pick the PointerToTracker transform." )
-    parametersFormLayout.addRow("PointerToTracker transform: ", self.pointerToTrackerSelector)
+    # PointerToTracker transform 
+    self.pointerToTrackerTransform = slicer.util.getNode('pointerToTracker')
+    if not self.pointerToTrackerTransform:
+      print('ERROR: pointerToTracker transform node was not found')
+
+    # PatientToReference transform selector    
+    self.patientToReferenceSelector = slicer.qMRMLNodeComboBox()
+    self.patientToReferenceSelector.nodeTypes = ( ("vtkMRMLLinearTransformNode"), "" )
+    self.patientToReferenceSelector.selectNodeUponCreation = True
+    self.patientToReferenceSelector.addEnabled = False
+    self.patientToReferenceSelector.removeEnabled = False
+    self.patientToReferenceSelector.noneEnabled = False
+    self.patientToReferenceSelector.showHidden = False
+    self.patientToReferenceSelector.showChildNodeTypes = False
+    self.patientToReferenceSelector.setMRMLScene( slicer.mrmlScene )
+    self.patientToReferenceSelector.setToolTip( "Pick the patientToReference transform (output of fiducial registration)." )
+    parametersFormLayout.addRow("patientToReference transform: ", self.patientToReferenceSelector)
+
+    # TabletModelToTablet transform selector    
+    self.tabletModelToTabletSelector = slicer.qMRMLNodeComboBox()
+    self.tabletModelToTabletSelector.nodeTypes = ( ("vtkMRMLLinearTransformNode"), "" )
+    self.tabletModelToTabletSelector.selectNodeUponCreation = True
+    self.tabletModelToTabletSelector.addEnabled = False
+    self.tabletModelToTabletSelector.removeEnabled = False
+    self.tabletModelToTabletSelector.noneEnabled = False
+    self.tabletModelToTabletSelector.showHidden = False
+    self.tabletModelToTabletSelector.showChildNodeTypes = False
+    self.tabletModelToTabletSelector.setMRMLScene( slicer.mrmlScene )
+    self.tabletModelToTabletSelector.setToolTip( "Pick the tabletModelToTablet transform (output of fiducial registration)." )
+    parametersFormLayout.addRow("tabletModelToTablet transform: ", self.tabletModelToTabletSelector)
 
     # Apply Transforms Button
     self.applyTransformsButton = qt.QPushButton("Apply Transforms")
     self.applyTransformsButton.toolTip = "Apply selected transforms."
     self.applyTransformsButton.enabled = False
     parametersFormLayout.addRow(self.applyTransformsButton)
-
-    # Reset Transform Tree Button
-    self.resetTransformsButton = qt.QPushButton("Reset Transforms")
-    self.resetTransformsButton.toolTip = "Reset transform tree."
-    self.resetTransformsButton.enabled = False
-    parametersFormLayout.addRow(self.resetTransformsButton)
 
     # Viewpoint Definition Area
     viewpointCollapsibleButton = ctk.ctkCollapsibleButton()
@@ -156,15 +127,15 @@ class AugmentedRealityNavigationWidget(ScriptedLoadableModuleWidget):
     self.tabletViewpointButton.setText(self.enableTabletViewpointButtonTextState0)
     parametersFormLayout.addRow(self.tabletViewpointButton)
 
-    # Applicator Viewpoint Button
-    self.applicatorViewpointButton = qt.QPushButton()
-    self.applicatorViewpointButton.toolTip = "Apply Applicator viewpoint."
-    self.applicatorViewpointButton.enabled = True
-    self.enableApplicatorViewpointButtonState = 0
-    self.enableApplicatorViewpointButtonTextState0 = "Enable Applicator Viewpoint Mode"
-    self.enableApplicatorViewpointButtonTextState1 = "Disable Applicator Viewpoint Mode"
-    self.applicatorViewpointButton.setText(self.enableApplicatorViewpointButtonTextState0)
-    parametersFormLayout.addRow(self.applicatorViewpointButton)
+    # Patient Viewpoint Button
+    self.patientViewpointButton = qt.QPushButton()
+    self.patientViewpointButton.toolTip = "Apply Patient viewpoint."
+    self.patientViewpointButton.enabled = True
+    self.enablePatientViewpointButtonState = 0
+    self.enablePatientViewpointButtonTextState0 = "Enable Patient Viewpoint Mode"
+    self.enablePatientViewpointButtonTextState1 = "Disable Patient Viewpoint Mode"
+    self.patientViewpointButton.setText(self.enablePatientViewpointButtonTextState0)
+    parametersFormLayout.addRow(self.patientViewpointButton)
 
     # Pointer Viewpoint Button
     self.pointerViewpointButton = qt.QPushButton()
@@ -176,23 +147,13 @@ class AugmentedRealityNavigationWidget(ScriptedLoadableModuleWidget):
     self.pointerViewpointButton.setText(self.enablePointerViewpointButtonTextState0)
     parametersFormLayout.addRow(self.pointerViewpointButton)
 
-     # Stop Viewpoint Button
-    self.stopViewpointButton = qt.QPushButton("STOP VIEWPOINT")
-    self.stopViewpointButton.toolTip = "Stop viewpoint."
-    self.stopViewpointButton.enabled = True
-    parametersFormLayout.addRow(self.stopViewpointButton)
-
     # connections    
-    self.tabletToTrackerSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-    self.applicatorToTrackerSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-    self.pointerToTrackerSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-    self.loadModelsButton.connect('clicked(bool)', self.onLoadModelsButtonClicked)
+    self.patientToReferenceSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.tabletModelToTabletSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.applyTransformsButton.connect('clicked(bool)', self.onApplyTransformsClicked)
-    self.resetTransformsButton.connect('clicked(bool)', self.onResetTransformsClicked)
     self.tabletViewpointButton.connect('clicked(bool)', self.onTabletViewpointButtonClicked)
-    self.applicatorViewpointButton.connect('clicked(bool)', self.onApplicatorViewpointButtonClicked)
+    self.patientViewpointButton.connect('clicked(bool)', self.onPatientViewpointButtonClicked)
     self.pointerViewpointButton.connect('clicked(bool)', self.onPointerViewpointButtonClicked)
-    self.stopViewpointButton.connect('clicked(bool)', self.onStopViewpointButtonClicked)
         
     # Add vertical spacer
     self.layout.addStretch(1)
@@ -204,39 +165,19 @@ class AugmentedRealityNavigationWidget(ScriptedLoadableModuleWidget):
     pass
 
   def onSelect(self):    
-    self.applyTransformsButton.enabled = self.pointerToTrackerSelector.currentNode() and self.tabletToTrackerSelector.currentNode() and self.applicatorToTrackerSelector.currentNode()
-    
-  def onLoadModelsButtonClicked(self):
-    self.AugmentedRealityNavigationLogic.LoadModels()    
+    self.applyTransformsButton.enabled = self.patientToReferenceSelector.currentNode() and self.tabletModelToTabletSelector.currentNode() 
 
   def onApplyTransformsClicked(self):
     self.applyTransformsButton.enabled = False
-    self.pointerToTrackerSelector.enabled = False
-    self.tabletToTrackerSelector.enabled = False
-    self.applicatorToTrackerSelector.enabled = False
-    self.applicatorModelSelector.enabled = False
-    self.tabletModelSelector.enabled = False
-    self.pointerModelSelector.enabled = False
-    self.loadModelsButton.enabled = False
-    self.resetTransformsButton.enabled = True
-    self.AugmentedRealityNavigationLogic.buildTransformTree(self.pointerModelSelector.currentNode(), self.tabletModelSelector.currentNode(), self.applicatorModelSelector.currentNode(), self.pointerToTrackerSelector.currentNode(), self.tabletToTrackerSelector.currentNode(), self.applicatorToTrackerSelector.currentNode())
-
-  def onResetTransformsClicked(self):
-    self.AugmentedRealityNavigationLogic.resetTransformTree(self.pointerModelSelector.currentNode(), self.tabletModelSelector.currentNode(), self.applicatorModelSelector.currentNode(), self.pointerToTrackerSelector.currentNode(), self.tabletToTrackerSelector.currentNode(), self.applicatorToTrackerSelector.currentNode())
-    self.pointerToTrackerSelector.enabled = True
-    self.tabletToTrackerSelector.enabled = True
-    self.applicatorToTrackerSelector.enabled = True
-    self.applicatorModelSelector.enabled = True
-    self.tabletModelSelector.enabled = True
-    self.pointerModelSelector.enabled = True
-    self.loadModelsButton.enabled = True
-    self.resetTransformsButton.enabled = False
-
+    self.patientToReferenceSelector.enabled = False
+    self.tabletModelToTabletSelector.enabled = False
+    self.AugmentedRealityNavigationLogic.buildTransformTree(self.pointerModel, self.tabletModel, self.patientModel, self.pointerToTrackerTransform, self.tabletToTrackerTransform, self.referenceToTrackerTransform, self.patientToReferenceSelector.currentNode(), self.tabletModelToTabletSelector.currentNode())
+  
   def onTabletViewpointButtonClicked(self):
     logging.debug('SetTabletViewpoint')
     
     if self.enableTabletViewpointButtonState == 0:
-          self.AugmentedRealityNavigationLogic.SetTabletViewpoint(self.tabletModelSelector.currentNode(), self.tabletToTrackerSelector.currentNode())
+          self.AugmentedRealityNavigationLogic.SetTabletViewpoint(self.tabletModel, self.tabletModelToTabletSelector.currentNode())
           self.AugmentedRealityNavigationLogic.StartViewpoint()
           self.enableTabletViewpointButtonState = 1
           self.tabletViewpointButton.setText(self.enableTabletViewpointButtonTextState1)
@@ -245,24 +186,24 @@ class AugmentedRealityNavigationWidget(ScriptedLoadableModuleWidget):
           self.enableTabletViewpointButtonState = 0
           self.tabletViewpointButton.setText(self.enableTabletViewpointButtonTextState0)
      
-  def onApplicatorViewpointButtonClicked(self):
-    logging.debug('SetApplicatorViewpoint')
+  def onPatientViewpointButtonClicked(self):
+    logging.debug('SetPatientViewpoint')
     
-    if self.enableApplicatorViewpointButtonState == 0:
-          self.AugmentedRealityNavigationLogic.SetApplicatorViewpoint(self.applicatorModelSelector.currentNode(), self.applicatorToTrackerSelector.currentNode())
+    if self.enablePatientViewpointButtonState == 0:
+          self.AugmentedRealityNavigationLogic.SetPatientViewpoint(self.patientModel, self.patientToReferenceSelector.currentNode())
           self.AugmentedRealityNavigationLogic.StartViewpoint()
-          self.enableApplicatorViewpointButtonState = 1
-          self.applicatorViewpointButton.setText(self.enableApplicatorViewpointButtonTextState1)
+          self.enablePatientViewpointButtonState = 1
+          self.patientViewpointButton.setText(self.enablePatientViewpointButtonTextState1)
     else: 
           self.AugmentedRealityNavigationLogic.StopViewpoint()
-          self.enableApplicatorViewpointButtonState = 0
-          self.applicatorViewpointButton.setText(self.enableApplicatorViewpointButtonTextState0)
+          self.enablePatientViewpointButtonState = 0
+          self.patientViewpointButton.setText(self.enablePatientViewpointButtonTextState0)
     
   def onPointerViewpointButtonClicked(self):
     logging.debug('SetPointerViewpoint')
     
     if self.enablePointerViewpointButtonState == 0:
-          self.AugmentedRealityNavigationLogic.SetPointerViewpoint(self.pointerModelSelector.currentNode(), self.pointerToTrackerSelector.currentNode())
+          self.AugmentedRealityNavigationLogic.SetPointerViewpoint(self.pointerModel, self.pointerToTrackerTransform)
           self.AugmentedRealityNavigationLogic.StartViewpoint()
           self.enablePointerViewpointButtonState = 1
           self.pointerViewpointButton.setText(self.enablePointerViewpointButtonTextState1)
@@ -271,9 +212,7 @@ class AugmentedRealityNavigationWidget(ScriptedLoadableModuleWidget):
           self.enablePointerViewpointButtonState = 0
           self.pointerViewpointButton.setText(self.enablePointerViewpointButtonTextState0)
 
-  def onStopViewpointButtonClicked(self):
-    self.AugmentedRealityNavigationLogic.StopViewpoint()
-
+  
 ### AugmentedRealityNavigationLogic
 class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
 
@@ -282,15 +221,15 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
     self.viewpointLogic = Viewpoint.ViewpointLogic()
 
     # Camera transformations
-    self.pointerCameraToPointer = slicer.util.getNode('PointerCameraToPointer')
+    self.pointerCameraToPointer = slicer.util.getNode('pointerCameraToPointer')
     if not self.pointerCameraToPointer:
       self.pointerCameraToPointer=slicer.vtkMRMLLinearTransformNode()
-      self.pointerCameraToPointer.SetName("PointerCameraToPointer")
+      self.pointerCameraToPointer.SetName("pointerCameraToPointer")
       m = vtk.vtkMatrix4x4()
       m.SetElement( 0, 0, 1 ) # Row 1
       m.SetElement( 0, 1, 0 )
       m.SetElement( 0, 2, 0 )
-      m.SetElement( 0, 3, 19 )      
+      m.SetElement( 0, 3, 0 )      
       m.SetElement( 1, 0, 0 )  # Row 2
       m.SetElement( 1, 1, 1 )
       m.SetElement( 1, 2, 0 )
@@ -298,19 +237,19 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
       m.SetElement( 2, 0, 0 )  # Row 3
       m.SetElement( 2, 1, 0 )
       m.SetElement( 2, 2, 1 )
-      m.SetElement( 2, 3, 330 )
+      m.SetElement( 2, 3, 0 )
       self.pointerCameraToPointer.SetMatrixTransformToParent(m)
       slicer.mrmlScene.AddNode(self.pointerCameraToPointer)
 
-    self.tabletCameraToTablet = slicer.util.getNode('TabletCameraToTablet')
+    self.tabletCameraToTablet = slicer.util.getNode('tabletCameraToTablet')
     if not self.tabletCameraToTablet:
       self.tabletCameraToTablet=slicer.vtkMRMLLinearTransformNode()
-      self.tabletCameraToTablet.SetName("TabletCameraToTablet")
+      self.tabletCameraToTablet.SetName("tabletCameraToTablet")
       m = vtk.vtkMatrix4x4()
       m.SetElement( 0, 0, 1 ) # Row 1
       m.SetElement( 0, 1, 0 )
       m.SetElement( 0, 2, 0 )
-      m.SetElement( 0, 3, 19 )      
+      m.SetElement( 0, 3, 0 )      
       m.SetElement( 1, 0, 0 )  # Row 2
       m.SetElement( 1, 1, 1 )
       m.SetElement( 1, 2, 0 )
@@ -318,19 +257,19 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
       m.SetElement( 2, 0, 0 )  # Row 3
       m.SetElement( 2, 1, 0 )
       m.SetElement( 2, 2, 1 )
-      m.SetElement( 2, 3, 330 )
+      m.SetElement( 2, 3, 0 )
       self.tabletCameraToTablet.SetMatrixTransformToParent(m)
       slicer.mrmlScene.AddNode(self.tabletCameraToTablet)
 
-    self.applicatorCameraToApplicator = slicer.util.getNode('ApplicatorCameraToApplicator')
-    if not self.applicatorCameraToApplicator:
-      self.applicatorCameraToApplicator=slicer.vtkMRMLLinearTransformNode()
-      self.applicatorCameraToApplicator.SetName("ApplicatorCameraToApplicator")
+    self.patientCameraToPatient = slicer.util.getNode('patientCameraToPatient')
+    if not self.patientCameraToPatient:
+      self.patientCameraToPatient=slicer.vtkMRMLLinearTransformNode()
+      self.patientCameraToPatient.SetName("patientCameraToPatient")
       m = vtk.vtkMatrix4x4()
       m.SetElement( 0, 0, 1 ) # Row 1
       m.SetElement( 0, 1, 0 )
       m.SetElement( 0, 2, 0 )
-      m.SetElement( 0, 3, 19 )      
+      m.SetElement( 0, 3, 0 )      
       m.SetElement( 1, 0, 0 )  # Row 2
       m.SetElement( 1, 1, 1 )
       m.SetElement( 1, 2, 0 )
@@ -338,32 +277,22 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
       m.SetElement( 2, 0, 0 )  # Row 3
       m.SetElement( 2, 1, 0 )
       m.SetElement( 2, 2, 1 )
-      m.SetElement( 2, 3, 330 )
-      self.applicatorCameraToApplicator.SetMatrixTransformToParent(m)
-      slicer.mrmlScene.AddNode(self.applicatorCameraToApplicator)
-
+      m.SetElement( 2, 3, 0 )
+      self.patientCameraToPatient.SetMatrixTransformToParent(m)
+      slicer.mrmlScene.AddNode(self.patientCameraToPatient)
      
   def __del__(self):
     self.viewpointLogic.stopViewpoint()
 
-  def LoadModels(self):
-    moduleDirectoryPath = slicer.modules.augmentedrealitynavigation.path.replace('AugmentedRealityNavigation.py', '')
-    slicer.util.loadModel(qt.QDir.toNativeSeparators(moduleDirectoryPath + '../../Data/Models/TabletModel.stl'))
-    slicer.util.loadModel(qt.QDir.toNativeSeparators(moduleDirectoryPath + '../../Data/Models/ApplicatorModel.stl'))
-    slicer.util.loadModel(qt.QDir.toNativeSeparators(moduleDirectoryPath + '../../Data/Models/PointerModel.stl'))
-    
-  def buildTransformTree(self, pointerModelNode, tabletModelNode, applicatorModelNode, PointerToTrackerTransformNode, TabletToTrackerTransformNode, ApplicatorToTrackerTransformNode):
+  def buildTransformTree(self, pointerModelNode, tabletModelNode, patientModelNode, PointerToTrackerTransformNode, TabletToTrackerTransformNode, ReferenceToTrackerTransformNode, PatientToReferenceTransformNode, TabletModelToTableTransformNode):
     # Build transform tree
     pointerModelNode.SetAndObserveTransformNodeID(PointerToTrackerTransformNode.GetID())
-    tabletModelNode.SetAndObserveTransformNodeID(TabletToTrackerTransformNode.GetID())
-    applicatorModelNode.SetAndObserveTransformNodeID(ApplicatorToTrackerTransformNode.GetID())
+    tabletModelNode.SetAndObserveTransformNodeID(TabletModelToTableTransformNode.GetID())
+    TabletModelToTableTransformNode.SetAndObserveTransformNodeID(TabletToTrackerTransformNode.GetID())
+    patientModelNode.SetAndObserveTransformNodeID(PatientToReferenceTransformNode.GetID())
+    PatientToReferenceTransformNode.SetAndObserveTransformNodeID(ReferenceToTrackerTransformNode.GetID())
   
-  def resetTransformTree(self, pointerModelNode, tabletModelNode, applicatorModelNode, PointerToTrackerTransformNode, TabletToTrackerTransformNode, ApplicatorToTrackerTransformNode):
-     # Reset transform tree
-    pointerModelNode.SetAndObserveTransformNodeID(None)
-    tabletModelNode.SetAndObserveTransformNodeID(None)
-    applicatorModelNode.SetAndObserveTransformNodeID(None)
-
+  
   def SetTabletViewpoint(self, tabletModelNode, TabletToTrackerTransformNode):
     if TabletToTrackerTransformNode:
       self.tabletCameraToTablet.SetAndObserveTransformNodeID(TabletToTrackerTransformNode.GetID())  
@@ -375,15 +304,15 @@ class AugmentedRealityNavigationLogic(ScriptedLoadableModuleLogic):
       self.viewpointLogic.setTransformNode(self.tabletCameraToTablet)
       self.viewpointLogic.startViewpoint()
 
-  def SetApplicatorViewpoint(self, applicatorModelNode, ApplicatorToTrackerTransformNode):
-    if ApplicatorToTrackerTransformNode:
-      self.pointerCameraToPointer.SetAndObserveTransformNodeID(ApplicatorToTrackerTransformNode.GetID())  
-      applicatorModelNode.GetDisplayNode().SetOpacity(1)
+  def SetPatientViewpoint(self, patientModelNode, patientToTrackerTransformNode):
+    if patientToTrackerTransformNode:
+      self.patientCameraToPatient.SetAndObserveTransformNodeID(patientToTrackerTransformNode.GetID())  
+      patientModelNode.GetDisplayNode().SetOpacity(1)
       SceneCameraNode=slicer.util.getNode('Default Scene Camera')  
       
       # Viewpoint
       self.viewpointLogic.setCameraNode(SceneCameraNode)
-      self.viewpointLogic.setTransformNode(self.applicatorCameraToApplicator)
+      self.viewpointLogic.setTransformNode(self.patientCameraToPatient)
       self.viewpointLogic.startViewpoint()
 
   def SetPointerViewpoint(self, pointerModelNode, PointerToTrackerTransformNode):
